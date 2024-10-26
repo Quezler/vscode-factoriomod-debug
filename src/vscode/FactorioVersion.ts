@@ -74,7 +74,7 @@ export class ActiveFactorioVersion {
 						resolve(version[1]);
 					}
 
-					reject(new Error("Unable to read version"));
+					reject(new Error(`Unable to read version:\nstdout: ${stdout}\nstderr: ${stderr}`));
 				});
 		});
 	}
