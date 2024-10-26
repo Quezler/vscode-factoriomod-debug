@@ -332,26 +332,13 @@ export class FactorioModDebugSession extends LoggingDebugSession {
 		const infos = await this.editorInterface.findWorkspaceFiles('**/info.json');
 		await Promise.all(infos.map(this.updateInfoJson, this));
 
-		this.sendEvent(new OutputEvent(`Checking Factorio Version...\n`, "console"));
-		let fac_version:string;
-		try {
-			fac_version = await this.activeVersion.getBinaryVersion();
-			this.sendEvent(new OutputEvent(`Factorio ${fac_version}\n`, "console"));
-		} catch (error) {
-			this.sendEvent(new OutputEvent(`Error reading Factorio Version: ${error}\n`, "console"));
-			this.sendEvent(new TerminatedEvent());
-			this.sendErrorResponse(response, 1);
-			if (!this._isRunningInline()) { process.exit(1); }
-			return;
-		}
-
 		if (!args.noDebug) {
 			if (args.useInstrumentMode ?? true) {
 				args.factorioArgs.push("--instrument-mod", "debugadapter");
 			}
-			if (semver.gte(fac_version, "1.1.107", {loose: true}) ) {
-				args.factorioArgs.push("--enable-unsafe-lua-debug-api");
-			}
+
+			args.factorioArgs.push("--enable-unsafe-lua-debug-api");
+
 			if ((args.checkPrototypes ?? true) && !args.factorioArgs.includes("--check-unused-prototype-data")) {
 				args.factorioArgs.push("--check-unused-prototype-data");
 			}
