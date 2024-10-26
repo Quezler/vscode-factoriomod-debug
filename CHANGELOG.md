@@ -5,6 +5,9 @@
 ## 2.0.3
 * LuaLS library package:
   * display `@deprecated` message on more removed/moved apis
+  * add entries for backports of `string.pack`/`unpack`/`packsize`
+* Debugger
+  * removed version check when launching
 
 ## 2.0.2
 * LuaLS library package:
