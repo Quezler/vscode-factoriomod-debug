@@ -124,6 +124,7 @@ export class FactorioVersionSelector {
 		this.output.info(`LuaLS ${luals.packageJSON.version} ${luals.isActive?"Activated":"Not Yet Activated"}`);
 
 		const luaconfig = vscode.workspace.getConfiguration("Lua");
+		const factorioconfig = vscode.workspace.getConfiguration("factorio");
 
 		const userThirdParty = luaconfig.get<string[]>("workspace.userThirdParty");
 		if (!userThirdParty) {
@@ -153,6 +154,7 @@ export class FactorioVersionSelector {
 			this.output.info(`Lua.workspace.checkThirdParty = ${checkThirdParty}`);
 		}
 
+		const manageLibraryDataLinks = factorioconfig.get("workspace.manageLibraryDataLinks", false);
 		const library = luaconfig.get<string[]>("workspace.library");
 		if (!library) {
 			this.output.warn(`Lua.workspace.library not present!`);
@@ -160,7 +162,7 @@ export class FactorioVersionSelector {
 			const dataPath = URI.file(await activeVersion.dataPath()).fsPath;
 			if (library.includes(dataPath)) {
 				this.output.info(`Lua.workspace.library: /data link OK (${dataPath})`);
-			} else {
+			} else if (manageLibraryDataLinks) {
 				this.output.warn(`Lua.workspace.library: /data link missing! (${dataPath})`);
 			}
 
@@ -478,7 +480,7 @@ export class FactorioVersionSelector {
 			await luaconfig.update("workspace.library", library);
 		}
 
-		if (factorioconfig.get("workspace.manageLibraryDataLinks", true)) {
+		if (factorioconfig.get("workspace.manageLibraryDataLinks", false)) {
 			const newroot = URI.file(await activeVersion.dataPath());
 			await addLibraryPath(newroot);
 		}
