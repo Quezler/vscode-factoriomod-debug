@@ -325,6 +325,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 						if (typeof v === "object" && v.complex_type === "literal" && v.value === true &&
 								typeof k === "object" && k.complex_type === "union") {
 							const lsclass = new LuaLSClass(concept.name);
+							lsclass.exact = true;
 							lsclass.description = description;
 							for (const option of k.options) {
 								lsclass.add(new LuaLSField(await this.LuaLS_type(option), await this.LuaLS_type(v)));
@@ -417,6 +418,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 	private async generate_LuaLS_events(format_description:DocDescriptionFormatter) {
 		const file = new LuaLSFile("runtime-api/events", this.docs.application_version);
 		const handlers = new LuaLSClass("event_handler.events");
+		handlers.exact = true;
 
 		for (const [_, event] of this.events) {
 			const handler = new LuaLSFunction("handler", [new LuaLSParam("event", new LuaLSTypeName(`EventData.${event.name}`))]);
@@ -425,6 +427,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				handler));
 
 			const lsevent = new LuaLSClass(`EventData.${event.name}`);
+			lsevent.exact = true;
 			lsevent.parents = [new LuaLSTypeName("EventData")];
 			lsevent.description = format_description(this.collect_description(event, {scope: "runtime", member: event.name}));
 			for (const param of event.data) {
@@ -559,6 +562,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 	// method table params and table/tuple complex_types
 	private async LuaLS_table_type(type_data:ApiWithParameters, file:LuaLSFile,  table_class_name:string, format_description:DocDescriptionFormatter, parents?:LuaLSType[]):Promise<LuaLSTypeName> {
 		const lsclass = new LuaLSClass(table_class_name);
+		lsclass.exact = true;
 		lsclass.parents = parents;
 		file.add(lsclass);
 
@@ -642,6 +646,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 					throw new Error(`${api_type.complex_type} without parent`);
 				}
 				const lsclass = new LuaLSClass(in_parent.table_class_name);
+				lsclass.exact = true;
 				for (const attribute of api_type.attributes) {
 					lsclass.add(new LuaLSField(
 						attribute.name,

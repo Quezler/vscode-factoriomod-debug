@@ -6,7 +6,7 @@
 
 do
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings)
----@class data.ModSettingPrototype:data.PrototypeBase
+---@class (exact) data.ModSettingPrototype:data.PrototypeBase
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#The_hidden_property)
 ---@field hidden? boolean
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#The_setting_type_property)
@@ -17,7 +17,7 @@ end
 
 do
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#bool-setting)
----@class data.ModBoolSettingPrototype:data.ModSettingPrototype
+---@class (exact) data.ModBoolSettingPrototype:data.ModSettingPrototype
 ---@field type "bool-setting"
 ---@field default_value boolean
 ---@field forced_value? boolean
@@ -27,7 +27,7 @@ end
 
 do
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#int-setting)
----@class data.ModIntSettingPrototype:data.ModSettingPrototype
+---@class (exact) data.ModIntSettingPrototype:data.ModSettingPrototype
 ---@field type "int-setting"
 ---@field default_value int64
 ---@field minimum_value? int64
@@ -39,7 +39,7 @@ end
 
 do
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#double-setting)
----@class data.ModDoubleSettingPrototype:data.ModSettingPrototype
+---@class (exact) data.ModDoubleSettingPrototype:data.ModSettingPrototype
 ---@field type "double-setting"
 ---@field default_value double
 ---@field minimum_value? double
@@ -51,7 +51,7 @@ end
 
 do
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#string-setting)
----@class data.ModStringSettingPrototype:data.ModSettingPrototype
+---@class (exact) data.ModStringSettingPrototype:data.ModSettingPrototype
 ---@field type "string-setting"
 ---@field default_value string
 ---@field allow_blank? boolean
@@ -63,7 +63,7 @@ end
 
 do
 ---[View Documentation](https://wiki.factorio.com/Tutorial:Mod_settings#color-setting)
----@class data.ModColorSettingPrototype:data.ModSettingPrototype
+---@class (exact) data.ModColorSettingPrototype:data.ModSettingPrototype
 ---@field type "color-setting"
 ---@field default_value data.Color
 local data_ModBoolSetting={

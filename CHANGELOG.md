@@ -5,6 +5,7 @@
 ## 2.0.3
 * LuaLS library package:
   * display `@deprecated` message on more removed/moved apis
+  * mark most generated classes as `@class (exact)` for more precise diagnostics
   * add entries for backports of `string.pack`/`unpack`/`packsize`
 * Debugger
   * removed version check when launching

@@ -200,6 +200,7 @@ export class LuaLSClass {
 	parents?:LuaLSType[];
 	generic_args?:string[];
 	global_name?:string;
+	exact?:boolean;
 
 	private operators?:LuaLSOperator[];
 	private call_op?:LuaLSOverload[];
@@ -234,7 +235,11 @@ export class LuaLSClass {
 	async write(output:Writable) {
 		output.write(`do\n`);
 		await comment_description(output, this.description);
-		output.write(`---@class ${this.name}`);
+		output.write(`---@class `);
+		if (this.exact) {
+			output.write(`(exact) `);
+		}
+		output.write(`${this.name}`);
 		if (this.generic_args && this.generic_args.length > 0) {
 			output.write(`<${this.generic_args.join(",")}>`);
 		}
