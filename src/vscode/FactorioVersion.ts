@@ -69,7 +69,7 @@ export class ActiveFactorioVersion {
 				(error, stdout, stderr)=>{
 					if (error) { reject(error); }
 
-					const version = stdout?.match(/^Version: ([0-9\.]+) /);
+					const version = stdout?.match(/^Version: ([0-9\.]+) /m);
 					if (version) {
 						resolve(version[1]);
 					}
