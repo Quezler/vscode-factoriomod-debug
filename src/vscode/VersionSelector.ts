@@ -309,6 +309,7 @@ export class FactorioVersionSelector {
 			const newName = await vscode.window.showInputBox({
 				prompt: "Display Name for this version",
 				placeHolder: "Enter a display name to be used in the Version Selector for this version",
+				ignoreFocusOut: true,
 			});
 			if (!newName) { return; }
 
