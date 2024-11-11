@@ -32,15 +32,19 @@ export class MapVersion {
 
 	isBeyond(main:number, major?:number, minor?:number, patch?:number) {
 		if (this.main < main) { return false; }
+		if (this.main > main) { return true; }
 
 		if (major === undefined) { return true; }
 		if (this.major < major) { return false; }
+		if (this.major > major) { return true; }
 
 		if (minor === undefined) { return true; }
 		if (this.minor < minor) { return false; }
+		if (this.minor > minor) { return true; }
 
 		if (patch === undefined) { return true; }
 		if (this.patch < patch) { return false; }
+		if (this.patch > patch) { return true; }
 
 		return true;
 	}
