@@ -59,7 +59,7 @@ function util.multiply_color(c1, n) end
 
 ---@param color Color
 ---@param alpha number
----@param normalized_alpha boolean
+---@param normalized_alpha boolean?
 ---@return Color
 function util.get_color_with_alpha(color, alpha, normalized_alpha) end
 
@@ -138,7 +138,7 @@ function util.add_shift_offset(offset_, table_) end
 function util.mul_shift(shift, scale) end
 
 ---@param amount number
----@param append_suffix boolean
+---@param append_suffix boolean?
 ---@return string
 function util.format_number(amount, append_suffix) end
 
@@ -163,11 +163,11 @@ function util.conditional_return(value, data) end
 ---@return table
 function util.merge(tables) end
 
----@param entity LuaEntity?
+---@param entity LuaControl?
 ---@param item_dict ItemStackDefinition?
 util.insert_safe = function(entity, item_dict) end
 
----@param entity LuaEntity?
+---@param entity LuaControl?
 ---@param item_dict ItemStackDefinition?
 util.remove_safe = function(entity, item_dict) end
 
