@@ -171,17 +171,18 @@ test('MapVersion', ()=>{
 
 	expect(new MapVersion(1, 2, 3, 4, 0).format()).equals("1.2.3-4");
 
-	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 3, 3));
-	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 3, 4));
-	expect(!new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 3, 5));
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 3, 3)).is.true;
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 3, 4)).is.true;
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 3, 5)).is.false;
 
-	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 2, 0));
-	expect(!new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 4, 0));
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 2, 0)).is.true;
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 2, 4, 0)).is.false;
 
-	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 1, 0, 0));
-	expect(!new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 3, 0, 0));
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 1, 0, 0)).is.true;
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(1, 3, 0, 0)).is.false;
 
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(0, 99, 0, 0)).is.true;
+	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(2, 0, 0, 0)).is.false;
 
-	expect(new MapVersion(1, 2, 3, 4, 0).isBeyond(0, 99, 0, 0));
-	expect(!new MapVersion(1, 2, 3, 4, 0).isBeyond(2, 0, 0, 0));
+	expect(new MapVersion(2, 0, 0, 0, 0).isBeyond(1, 2, 3, 4)).is.true;
 });
