@@ -57,6 +57,7 @@ export type SavedLuaValue = { type: "Nil"|"BoolFalse"|"BoolTrue" }|
 
 export enum LuaObjectType {
 	LuaEntity = 0,
+	LuaInvalidObject = 1,
 	LuaRecipe = 2,
 	LuaTechnology = 3,
 	LuaRandomGenerator = 4,
@@ -102,7 +103,7 @@ export enum LuaObjectType {
 	LuaBurnerPrototype = 45,
 	LuaElectricEnergySourcePrototype = 46,
 	LuaCustomInputPrototype = 47,
-	LuaNoiseLayerPrototype = 48,
+	LuaNoiseLayerPrototype = 48, // Deprecated. May only appear if input.mapVersion < MapVersion(1, 2, 0, 298)
 	LuaAutoplaceControlPrototype = 49,
 	LuaModSettingPrototype = 50,
 	LuaAmmoCategoryPrototype = 51,
@@ -124,7 +125,33 @@ export enum LuaObjectType {
 	LuaHeatEnergySourcePrototype = 67,
 	LuaVoidEnergySourcePrototype = 68,
 	LuaFontPrototype = 69,
+	LuaQualityPrototype = 70,
+	LuaSpaceLocationPrototype = 71,
+	LuaPlanetType = 72,
+	LuaUndoRedoStackType = 73,
+	LuaSurfacePropertyPrototype = 74,
+	LuaCustomEventPrototype = 75,
+	LuaSpaceConnectionPrototype = 76,
+	LuaActiveTriggerPrototype = 77,
+	LuaSpacePlatformType = 78,
 	LuaHeatBufferPrototype = 79,
+	LuaWireConnectorType = 80,
+	LuaAsteroidChunkPrototype = 81,
+	LuaLogisticSection = 82,
+	LuaRailEnd = 83,
+	LuaNamedNoiseFunction = 84,
+	LuaCollisionLayerPrototype = 85,
+	LuaSimulationType = 86,
+	LuaAirbornePollutionPrototype = 87,
+	LuaItem = 88,
+	LuaTrainManager = 89,
+	LuaRenderObject = 90,
+	LuaRecord = 91,
+	LuaBurnerUsagePrototype = 92,
+	LuaSurfacePrototype = 93,
+	LuaProcessionPrototype = 94,
+	LuaProcessionLayerInheritanceGroupPrototype = 95,
+	LuaLogisticSections = 96,
 
 	// this one isn't real, just so TS understands that there might be more not covered...
 	xLuaFutureObject = -1
@@ -134,10 +161,10 @@ export enum LuaItemStackType {
 	None = 0,
 	EntityInventory = 1,
 	ControllerInventory = 2,
-	ItemEntity = 3,
-	EntityCursorStack = 4,
-	ControllerCursorStack = 5,
-	Inserter = 6,
+	ItemEntity = 3, // Only used before MapVersion(1, 2, 0, 361), then migrated to Entity
+	EntityCursorStack = 4, // Only used before MapVersion(1, 2, 0, 361), then migrated to Entity
+	ControllerCursorStack = 5, // Only used before MapVersion(1, 2, 0, 361), then migrated to Entity
+	Inserter = 6, // Only used before MapVersion(1, 2, 0, 361), then migrated to Entity
 	ItemWithInventory = 7,
 	BeltConnectable = 8,
 	Equipment = 9,
@@ -489,7 +516,8 @@ export class ScriptDat {
 	}
 
 	private loadLuaItemStack(b:BufferStream) {
-		const type = b.readUInt32LE() as LuaItemStackType;
+
+		const type = this.version.isBeyond(1, 2, 0, 359) ? b.readUInt8() : b.readUInt32LE() as LuaItemStackType;
 		switch (type) {
 			case LuaItemStackType.None:
 				return { stacktype: LuaItemStackType[type] };

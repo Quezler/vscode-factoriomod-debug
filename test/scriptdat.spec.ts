@@ -7,6 +7,15 @@ import { forkTest } from "./util";
 suite('CLI script.dat dump', ()=>{
 	const fmtk = path.join(__dirname, '../dist/fmtk-cli.js');
 
+	test('dump 1.1', async ()=>{
+		const result = await forkTest(fmtk,
+			["scriptdat", path.join(__dirname, 'test-script_1.1.dat')],
+			{cwd: __dirname});
+		const expected = JSON.parse(await fsp.readFile(path.join(__dirname, 'test-script_1.1.json'), "utf8"));
+		expect(JSON.parse(result.stdout.toString("utf8")))
+			.deep.equals(expected);
+	});
+
 	test('dump', async ()=>{
 		const result = await forkTest(fmtk,
 			["scriptdat", path.join(__dirname, 'test-script.dat')],
