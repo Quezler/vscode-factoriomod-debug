@@ -359,9 +359,28 @@ export class ScriptDat {
 				const target = b.readUInt32LE();
 				return { force, surface, target };
 			}
-			case LuaObjectType.LuaForce:
+
 			case LuaObjectType.LuaDecorativePrototype:
+			{
+				if (this.version.isBeyond(1, 2, 1, 4)) {
+					const id = b.readUInt16LE();
+					return { id };
+				} else {
+					const id = b.readUInt8();
+					return { id };
+				}
+			}
 			case LuaObjectType.LuaTilePrototype:
+			{
+				if (this.version.isBeyond(1, 2, 0, 3)) {
+					const id = b.readUInt16LE();
+					return { id };
+				} else {
+					const id = b.readUInt8();
+					return { id };
+				}
+			}
+			case LuaObjectType.LuaForce:
 			case LuaObjectType.LuaDamagePrototype:
 			case LuaObjectType.LuaEquipmentGridPrototype:
 			case LuaObjectType.LuaAutoplaceControlPrototype:
@@ -398,6 +417,7 @@ export class ScriptDat {
 				return { id };
 			}
 			case LuaObjectType.LuaNamedNoiseExpression:
+			case LuaObjectType.LuaNamedNoiseFunction:
 			{
 				const id = b.readUInt32LE();
 				return { id };
@@ -420,8 +440,13 @@ export class ScriptDat {
 			}
 			case LuaObjectType.LuaSurface:
 			{
-				const surface = b.readPackedUInt_8_32();
-				return { surface };
+				if (this.version.isBeyond(1, 2, 7, 1)) {
+					const target = b.readUInt32LE();
+					return { target };
+				} else {
+					const surface = b.readPackedUInt_8_32();
+					return { surface };
+				}
 			}
 			case LuaObjectType.LuaGroup:
 			{
@@ -515,6 +540,15 @@ export class ScriptDat {
 		}
 	}
 
+	private loadItemStackLocation(b:BufferStream) {
+		const standaloneStack = this.version.isBeyond(1, 2, 0, 33) ? b.readUInt8() : 0;
+		if (standaloneStack!==0) return {standaloneStack};
+
+		const inventoryIndex = b.readUInt8();
+		const slotIndex = b.readUInt16LE();
+		return { inventoryIndex, slotIndex }
+	}
+
 	private loadLuaItemStack(b:BufferStream) {
 
 		const type = this.version.isBeyond(1, 2, 0, 359) ? b.readUInt8() : b.readUInt32LE() as LuaItemStackType;
@@ -527,9 +561,15 @@ export class ScriptDat {
 			case LuaItemStackType.Equipment:
 			{
 				const target = b.readUInt32LE();
-				const inv = b.readUInt8();
-				const slot = b.readUInt16LE();
-				return { stacktype: LuaItemStackType[type], target, inv, slot};
+				let location;
+				if (this.version.isBeyond(1, 2, 0, 361)) {
+					location = this.loadItemStackLocation(b);
+				} else {
+					const inventoryIndex = b.readUInt8();
+					const slotIndex = b.readUInt16LE();
+					location = { inventoryIndex, slotIndex }
+				}
+				return { stacktype: LuaItemStackType[type], target, location};
 			}
 			case LuaItemStackType.ItemEntity:
 			case LuaItemStackType.EntityCursorStack:
