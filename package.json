@@ -109,7 +109,9 @@
     "onCommand:workbench.action.tasks.runTask",
     "workspaceContains:**/changelog.txt",
     "workspaceContains:**/info.json",
-    "workspaceContains:**/control.lua"
+    "workspaceContains:**/control.lua",
+    "workspaceContains:**/mod-list.json",
+    "workspaceContains:**/mod-settings.dat"
   ],
   "contributes": {
     "colors": [
