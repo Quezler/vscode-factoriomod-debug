@@ -7,6 +7,7 @@
   * added types for `meld` library
 * VSCode:
   * add `mod-list.json` and `mod-settings.dat` activation events
+  * partial update of `script.dat` viewer
 
 ## 2.0.3
 * LuaLS library package:
