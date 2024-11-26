@@ -247,18 +247,30 @@ export class FactorioVersionSelector {
 					}
 				}))).filter((v):v is FactorioVersion=>!!v);
 
+		const describeVersion = async (fv:FactorioVersion)=>{
+			if (fv.onlineDocs === true) {
+				return "latest"
+			}
+
+			if (fv.onlineDocs) {
+				return fv.onlineDocs
+			}
+
+			return (await this.tryJsonDocs(fv))?.application_version
+		}
+
 		const qpresult = await vscode.window.showQuickPick(Promise.all([
 			...versions.map(async fv=>({
 				fv: fv,
 				label: fv.name,
-				description: (await this.tryJsonDocs(fv))?.application_version,
+				description: await describeVersion(fv),
 				detail: fv.factorioPath,
 				picked: fv.active,
 			})),
 			...detectedVersions.map(async fv=>({
 				fv: fv,
 				label: `${fv.name} (autodetected)`,
-				description: (await this.tryJsonDocs(fv))?.application_version,
+				description: await describeVersion(fv),
 				detail: fv.factorioPath,
 			})),
 			{
@@ -374,14 +386,29 @@ export class FactorioVersionSelector {
 	private async tryJsonDocs(fv:FactorioVersion, throwOnError?:false): Promise<ApiDocGenerator|undefined>;
 	private async tryJsonDocs(fv:FactorioVersion, throwOnError:true) : Promise<ApiDocGenerator>;
 	private async tryJsonDocs(fv:FactorioVersion, throwOnError?:boolean) {
-		const docpath = Utils.joinPath(URI.file(substitutePathVariables(fv.factorioPath, vscode.workspace.workspaceFolders)),
-			fv.docsPath ? fv.docsPath :
-			(os.platform() === "darwin") ? "../../doc-html/runtime-api.json" :
-			"../../../doc-html/runtime-api.json"
-		);
+		let docjson:string;
+		if (fv.onlineDocs) {
+			const version = fv.onlineDocs === true ? "latest" : fv.onlineDocs;
+
+			const url = `https://lua-api.factorio.com/${version}/runtime-api.json`;
+			const result = await fetch(url);
+			if (!result.ok) {
+				if (!throwOnError) { return; }
+				throw new Error(`Error fetching ${url} : ${result.statusText}`);
+			}
+			docjson = await result.text();
+		} else {
+			const docpath = Utils.joinPath(URI.file(substitutePathVariables(fv.factorioPath, vscode.workspace.workspaceFolders)),
+				fv.docsPath ? fv.docsPath :
+				(os.platform() === "darwin") ? "../../doc-html/runtime-api.json" :
+				"../../../doc-html/runtime-api.json"
+			);
+			docjson = (await fs.readFile(docpath)).toString();
+		}
+
 		const docsettings = await vscode.workspace.getConfiguration("factorio").get<DocSettings>("docs", {});
 		try {
-			return new ApiDocGenerator((await fs.readFile(docpath)).toString(), docsettings);
+			return new ApiDocGenerator(docjson, docsettings);
 		} catch (error) {
 			if (!throwOnError) { return; }
 			throw error;
@@ -431,16 +458,10 @@ export class FactorioVersionSelector {
 		} catch (error) {
 		}
 
-		const docargs = [
-			"sumneko-3rd",
-			"-d", activeVersion.docsPath,
-			"-p", activeVersion.protosPath,
-		];
-
 		await forkScript(
 			{ close() {}, write(data) {} },
 			this.context.asAbsolutePath("./dist/fmtk-cli.js"),
-			docargs, sumneko3rd.fsPath);
+			activeVersion.docArgs, sumneko3rd.fsPath);
 
 		const luaconfig = vscode.workspace.getConfiguration("Lua");
 

@@ -313,6 +313,10 @@
                   "type": "string",
                   "description": "Path to Factorio config.ini file."
                 },
+                "onlineDocs": {
+                  "type": ["boolean", "string"],
+                  "description": "Use online docs, version id or `true` for `latest`"
+                },
                 "docsPath": {
                   "type": "string",
                   "description": "Path to runtime-api.json, must be relative to factorioPath."

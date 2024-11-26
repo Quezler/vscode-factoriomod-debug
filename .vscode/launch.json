@@ -122,7 +122,8 @@
 			"program": "${workspaceFolder}/dist/fmtk-cli.js",
 			"cwd": "${workspaceFolder}",
 			"args": [
-				"sumneko-3rd",
+				"luals-addon",
+				//"-o", "latest",
 				//"-d","${workspaceFolder}/test/factorio/doc-html/runtime-api.json",
 				//"-p","${workspaceFolder}/test/factorio/doc-html/prototype-api.json",
 				"${workspaceFolder}/out/sumneko-3rd",

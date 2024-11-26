@@ -12,6 +12,8 @@ export interface FactorioVersion {
 
 	factorioPath: string
 	configPath?: string
+
+	onlineDocs?: boolean|string
 	docsPath?: string
 	protosPath?: string
 
@@ -100,6 +102,21 @@ export class ActiveFactorioVersion {
 
 	public get factorioPath() {
 		return substitutePathVariables(this.fv.factorioPath, this.workspaceFolders);
+	}
+
+	public get docArgs() {
+		if (this.fv.onlineDocs) {
+			return [
+				"luals-addon",
+				"-o", this.fv.onlineDocs === true ? "latest" : this.fv.onlineDocs
+			]
+		}
+
+		return [
+			"luals-addon",
+			"-d", this.docsPath,
+			"-p", this.protosPath,
+		]
 	}
 
 	public get docsPath() {
