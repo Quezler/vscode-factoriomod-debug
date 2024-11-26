@@ -8,6 +8,7 @@
 * VSCode:
   * add `mod-list.json` and `mod-settings.dat` activation events
   * partial update of `script.dat` viewer
+  * support `onlineDocs` in Factorio Version config
 * JSON Schema:
   * add `quality` to migration schema
 
