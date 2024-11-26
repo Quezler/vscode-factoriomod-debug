@@ -41,6 +41,7 @@
     "equipment-category": { "$ref": "#/definitions/migration_item"},
     "mod-setting": { "$ref": "#/definitions/migration_item"},
     "trivial-smoke": { "$ref": "#/definitions/migration_item"},
-    "shortcut": { "$ref": "#/definitions/migration_item"}
+    "shortcut": { "$ref": "#/definitions/migration_item"},
+    "quality": { "$ref": "#/definitions/migration_item"}
   }
 }

@@ -8,6 +8,8 @@
 * VSCode:
   * add `mod-list.json` and `mod-settings.dat` activation events
   * partial update of `script.dat` viewer
+* JSON Schema:
+  * add `quality` to migration schema
 
 ## 2.0.3
 * LuaLS library package:
