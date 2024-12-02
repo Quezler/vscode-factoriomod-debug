@@ -6,6 +6,7 @@
 * LuaLS library package:
   * added types for `meld` library
   * corrected some types in `lualib/util` (#149)
+  * Remove support for Factorio JSON Docs v4, v5 (Factorio < 2.0)
 * VSCode:
   * add `mod-list.json` and `mod-settings.dat` activation events
   * partial update of `script.dat` viewer

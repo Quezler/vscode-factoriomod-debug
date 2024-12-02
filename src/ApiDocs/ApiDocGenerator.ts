@@ -23,8 +23,8 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 			throw `Unknown application: ${this.docs.application}`;
 		}
 
-		if (!(this.docs.api_version===4 || this.docs.api_version===5 || this.docs.api_version===6)) {
-			throw `Unsupported JSON Version ${this.docs.api_version}`;
+		if (!(this.docs.api_version===6)) {
+			throw `Unsupported Runtime Docs JSON Version ${this.docs.api_version}`;
 		}
 
 		if (this.docs.stage !== "runtime") {
@@ -95,9 +95,6 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 		if (this.events.has(member)) {
 			return `/events.html#${member}`;
 		}
-		if (this.api_version === 4 && ["string", "float"].includes(member)) {
-			return `/builtin-types.html#${member}`;
-		}
 		if (this.defines.has(member)) {
 			return `/defines.html#${member}`;
 		}
@@ -115,17 +112,9 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 		// own
 		result.push(...getter(c));
 
-		// parent (v5 v6)
+		// parent (v6)
 		if (c.parent) {
 			result.push(...getter(this.classes.get(c.parent)!));
-		}
-
-		// bases (v4)
-		if (c.base_classes) {
-			result.push(...c.base_classes
-				.map(b=>this.classes.get(b))
-				.filter((b):b is ApiClass=>!!b)
-				.flatMap(getter));
 		}
 
 		return result;
@@ -159,12 +148,12 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				} else if (attribute.name === "object_name") {
 					// I don't list `object_name` at all, only for looking up the right types...
 				} else {
-					if (attribute.read ?? attribute.read_type) {
+					if (attribute.read_type) {
 						cc[attribute.name] = {};
-						if (!(attribute.write ?? attribute.write_type)) {
+						if (!(attribute.write_type)) {
 							cc[attribute.name].readOnly = true;
 						}
-						const type = attribute.type ?? attribute.read_type;
+						const type = attribute.read_type;
 						if (typeof type === "string" && type.startsWith("defines.")) {
 							cc[attribute.name].enumFrom = type;
 						}
@@ -180,7 +169,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				switch (operator.name) {
 					case "index":
 						cc["[]"] = {
-							readOnly: !(operator.write ?? operator.write_type),
+							readOnly: !operator.write_type,
 							thisAsTable: true,
 							iterMode: "count",
 						};
@@ -241,7 +230,6 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 		lsclass.description = format_description(this.collect_description(aclass, { scope: "runtime", member: aclass.name }));
 
 		lsclass.parents = aclass.parent ? [new LuaLSTypeName(aclass.parent)] :
-			aclass.base_classes ? aclass.base_classes.map(t=>new LuaLSTypeName(t)):
 			[ new LuaLSTypeName("LuaObject") ];
 		lsclass.generic_args = overlay.adjust.class[aclass.name]?.generic_params;
 		if (overlay.adjust.class[aclass.name]?.generic_parent) {
@@ -251,7 +239,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 		for (const attribute of aclass.attributes) {
 			lsclass.add(new LuaLSField(
 				attribute.name,
-				await this.LuaLS_type(attribute.type ?? attribute.write_type ?? attribute.read_type , {
+				await this.LuaLS_type(attribute.write_type ?? attribute.read_type , {
 					file, table_class_name: `${aclass.name}.${attribute.name}`, format_description,
 				}),
 				format_description(this.collect_description(attribute, { scope: "runtime", member: aclass.name, part: attribute.name })),
@@ -272,7 +260,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				}
 				case "length":
 				{
-					const lenop = new LuaLSOperator("len", await this.LuaLS_type(operator.type ?? operator.read_type));
+					const lenop = new LuaLSOperator("len", await this.LuaLS_type(operator.read_type));
 					lenop.description = format_description(this.collect_description(operator, { scope: "runtime", member: aclass.name, part: "length_operator" }));
 					lsclass.add(lenop);
 					break;
@@ -282,7 +270,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 					if (overlay.adjust.class[aclass.name]?.no_index) { break; }
 					lsclass.add(new LuaLSField(
 						await this.LuaLS_type(overlay.adjust.class[aclass.name]?.index_key ?? "uint"),
-						await this.LuaLS_type(operator.type ?? operator.write_type ?? operator.read_type),
+						await this.LuaLS_type(operator.write_type ?? operator.read_type),
 						format_description(this.collect_description(operator, { scope: "runtime", member: aclass.name, part: "index_operator" })),
 					));
 					break;
@@ -485,17 +473,10 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 	}
 
 	private async LuaLS_function(func:ApiMethod, file:LuaLSFile, format_description:DocDescriptionFormatter, in_class?:string):Promise<LuaLSFunction> {
-		const params = (func.takes_table ?? func.format?.takes_table) ?
-			[ new LuaLSParam("param", await this.LuaLS_table_type(func, file, `${in_class??""}${in_class?".":""}${func.name}_param`, format_description), undefined, (func.table_is_optional ?? func.format?.table_optional)) ]:
+		const params = func.format.takes_table ?
+			[ new LuaLSParam("param", await this.LuaLS_table_type(func, file, `${in_class??""}${in_class?".":""}${func.name}_param`, format_description), undefined, func.format.table_optional) ]:
 			await this.LuaLS_params(func.parameters, format_description);
-		if (func.variadic_type) { // V4
-			params.push(new LuaLSParam(
-				"...",
-				await this.LuaLS_type(func.variadic_type),
-				format_description(func.variadic_description)
-			));
-		}
-		if (func.variadic_parameter) { // V5, V6
+		if (func.variadic_parameter) { // V6
 			params.push(new LuaLSParam(
 				"...",
 				await this.LuaLS_type(func.variadic_parameter.type),
@@ -528,15 +509,8 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 					])),
 				];
 
-				if (this.api_version === 4) {
-					const hasFilter = event.description.match(/(Lua\w+Filter)\)\.$/);
-					if (hasFilter) {
-						params.push(new LuaLSParam("filters", new LuaLSArray(new LuaLSTypeName(hasFilter[1])), undefined, true));
-					}
-				} else if (this.api_version >= 5) {
-					if (event.filter) {
-						params.push(new LuaLSParam("filters", new LuaLSArray(new LuaLSTypeName(event.filter)), undefined, true));
-					}
+				if (event.filter) {
+					params.push(new LuaLSParam("filters", new LuaLSArray(new LuaLSTypeName(event.filter)), undefined, true));
 				}
 
 				lsfunc.add(new LuaLSOverload(
@@ -628,17 +602,13 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 			case "type":
 				return this.LuaLS_type(api_type.value, in_parent);
 
-			///@ts-expect-error fallthrough
 			case "tuple":
-				if (this.isVersion(5) || this.isVersion(6)) {
-					return new LuaLSTuple(await Promise.all(
-						(api_type as ApiTupleType<5|6>).values.map((v, i)=>this.LuaLS_type(v, sub_parent(`${i}`)))));
-				}
+				return new LuaLSTuple(await Promise.all(api_type.values.map((v, i)=>this.LuaLS_type(v, sub_parent(`${i}`)))));
 			case "table":
 				if (!in_parent) {
 					throw new Error(`${api_type.complex_type} without parent`);
 				}
-				return this.LuaLS_table_type((api_type as ApiTableType|ApiTupleType<4>), in_parent.file, in_parent.table_class_name, in_parent.format_description);
+				return this.LuaLS_table_type(api_type, in_parent.file, in_parent.table_class_name, in_parent.format_description);
 
 			case "LuaStruct":
 			{
@@ -650,7 +620,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				for (const attribute of api_type.attributes) {
 					lsclass.add(new LuaLSField(
 						attribute.name,
-						await this.LuaLS_type(attribute.type ?? attribute.write_type ?? attribute.read_type, {
+						await this.LuaLS_type(attribute.write_type ?? attribute.read_type, {
 							file: in_parent.file,
 							table_class_name: `${in_parent.table_class_name}.${attribute.name}`,
 							format_description: in_parent.format_description,
@@ -684,7 +654,6 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 		return [
 			description,
 			obj.lists?.join("\n\n"),
-			obj.notes?.map(note=>`**Note:** ${note}`)?.join("\n\n"),
 			obj.raises && (
 				`**Events:**\n${
 					obj.raises?.map(raised=>` * ${raised.optional?"May":"Will"} raise [${raised.name}](runtime:events::${raised.name}) ${{instantly: "instantly", current_tick: "later in the current tick", future_tick: "in a future tick"}[raised.timeframe]}.${raised.description?"\n"+raised.description:""}`)?.join("\n\n") }`

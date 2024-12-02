@@ -17,8 +17,8 @@ export class ProtoDocGenerator<V extends ProtoVersions = ProtoVersions> {
 			throw `Unknown application: ${this.docs.application}`;
 		}
 
-		if (!(this.docs.api_version===4 || this.docs.api_version===5 || this.docs.api_version===6)) {
-			throw `Unsupported JSON Version ${this.docs.api_version}`;
+		if (!(this.docs.api_version===6)) {
+			throw `Unsupported Prototype Docs JSON Version ${this.docs.api_version}`;
 		}
 
 		if (this.docs.stage !== "prototype") {

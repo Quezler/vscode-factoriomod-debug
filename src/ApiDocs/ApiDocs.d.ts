@@ -4,7 +4,6 @@ interface ApiDocs<V extends ApiVersions = ApiVersions> extends BaseDocs<V> {
 	readonly classes: ApiClass<V>[]
 	readonly events: ApiEvent[]
 	readonly defines: ApiDefine[]
-	readonly builtin_types: V extends 4 ? ApiBuiltin[] : never
 	readonly concepts: ApiConcept[]
 	readonly global_objects: ApiGlobalObject[]
 	readonly global_functions: ApiMethod[]
@@ -14,10 +13,9 @@ interface DocBasicMember<V extends ApiVersions = ApiVersions> {
 	readonly name: string
 	readonly order: number
 	readonly description: string
-	readonly notes?: V extends 4 ? string[] : never
-	readonly lists?: V extends 5|6 ? string[] : never
+	readonly lists?: string[]
 	readonly examples?: string[]
-	readonly images?: V extends 5|6 ? DocImage[] : never
+	readonly images?: DocImage[]
 }
 
 interface ApiWithParameters<V extends ApiVersions = ApiVersions> {
@@ -35,14 +33,7 @@ interface ApiStructType {
 	readonly attributes: ApiAttribute[]
 }
 
-type ApiTupleType<V extends ApiVersions = ApiVersions> =
-	V extends 4 ? ApiTupleTypeV4 :
-	V extends 5|6 ? BaseTupleType<ApiType<V>> :
-	never;
-
-interface ApiTupleTypeV4 extends ApiWithParameters {
-	readonly complex_type:"tuple"
-}
+type ApiTupleType<V extends ApiVersions = ApiVersions> = BaseTupleType<ApiType<V>>;
 
 interface ApiCustomTableType<V extends ApiVersions = ApiVersions> {
 	readonly complex_type:"LuaCustomTable"
@@ -82,15 +73,13 @@ interface ApiParameterGroup<V extends ApiVersions = ApiVersions> extends DocBasi
 
 interface ApiEvent<V extends ApiVersions = ApiVersions> extends DocBasicMember<V> {
 	readonly data: ApiParameter<V>[]
-	readonly filter?: V extends 5|6 ? string : never
+	readonly filter?: string
 }
 
 interface ApiDefine<V extends ApiVersions = ApiVersions> extends DocBasicMember<V> {
 	readonly values?: DocBasicMember<V>[]
 	readonly subkeys?: ApiDefine[]
 }
-
-interface ApiBuiltin extends DocBasicMember<4> {}
 
 interface ApiGlobalObject<V extends ApiVersions = ApiVersions> extends DocBasicMember<V> {
 	readonly type: string
@@ -109,13 +98,8 @@ interface ApiVariadicParameter<V extends ApiVersions = ApiVersions> {
 interface ApiMethod<V extends ApiVersions = ApiVersions> extends DocBasicMember<V>, ApiWithParameters {
 	readonly subclasses?: string[]
 
-	readonly variadic_type?: V extends 4 ? ApiType<V>: never
-	readonly variadic_description?: V extends 4 ? string : never
-	readonly takes_table: V extends 4 ? boolean : never
-	readonly table_is_optional?: V extends 4 ? boolean : never
-
-	readonly variadic_parameter?: V extends 5|6 ? ApiVariadicParameter<V> : never
-	readonly format: V extends 5|6 ? ApiMethodFormat : never
+	readonly variadic_parameter?: ApiVariadicParameter<V>
+	readonly format: ApiMethodFormat
 
 	readonly return_values: Omit<ApiParameter, "name">[]
 	readonly raises?: ApiEventRaised<V>[]
@@ -123,11 +107,8 @@ interface ApiMethod<V extends ApiVersions = ApiVersions> extends DocBasicMember<
 
 interface ApiAttribute<V extends ApiVersions = ApiVersions> extends DocBasicMember<V> {
 	readonly subclasses?: string[]
-	readonly type: V extends 4|5 ? ApiType<V> : never
-	readonly read: V extends 4|5 ? boolean : never
-	readonly write: V extends 4|5 ? boolean : never
-	readonly read_type: V extends 6 ? ApiType<V> : never
-	readonly write_type: V extends 6 ? ApiType<V> : never
+	readonly read_type: ApiType<V>
+	readonly write_type: ApiType<V>
 	readonly raises?: ApiEventRaised[]
 	readonly optional?: boolean
 }
@@ -145,7 +126,6 @@ interface ApiClass<V extends ApiVersions = ApiVersions> extends DocBasicMember<V
 	readonly methods: ApiMethod<V>[]
 	readonly attributes: ApiAttribute[]
 	readonly operators: ApiOperator<V>[]
-	readonly base_classes?: V extends 4 ? string[] : never
-	readonly parent?: V extends 5|6 ? string : never
+	readonly parent?: string
 	readonly abstract: boolean
 }
