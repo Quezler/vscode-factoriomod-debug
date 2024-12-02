@@ -7,6 +7,7 @@
   * added types for `meld` library
   * corrected some types in `lualib/util` (#149)
   * Remove support for Factorio JSON Docs v4, v5 (Factorio < 2.0)
+  * Update event type special cases for Factorio 2.0.24
 * VSCode:
   * add `mod-list.json` and `mod-settings.dat` activation events
   * partial update of `script.dat` viewer

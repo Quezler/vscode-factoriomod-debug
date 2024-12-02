@@ -409,11 +409,6 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 		handlers.exact = true;
 
 		for (const [_, event] of this.events) {
-			const handler = new LuaLSFunction("handler", [new LuaLSParam("event", new LuaLSTypeName(`EventData.${event.name}`))]);
-			handlers.add(new LuaLSField(
-				new LuaLSTypeName(event.name === "CustomInputEvent"?"string":`defines.events.${event.name}`),
-				handler));
-
 			const lsevent = new LuaLSClass(`EventData.${event.name}`);
 			lsevent.exact = true;
 			lsevent.parents = [new LuaLSTypeName("EventData")];
@@ -427,10 +422,20 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				));
 			}
 			file.add(lsevent);
+
+			if (event.name === "CustomInputEvent") {
+				continue;
+			}
+
+			const handler = new LuaLSFunction("handler", [new LuaLSParam("event", new LuaLSTypeName(`EventData.${event.name}`))]);
+			handlers.add(new LuaLSField(
+				new LuaLSTypeName(`defines.events.${event.name}`),
+				handler));
 		}
 
-		const generic_handler = new LuaLSFunction("handler", [new LuaLSParam("event", new LuaLSTypeName(`EventData`))]);
-		handlers.add(new LuaLSField(new LuaLSTypeName("uint"), generic_handler));
+		// only defines.events - if the same event is registered by different id kinds (defines + string + proto)
+		// then event_handler will end up clobbering itself and not calling them all, so discourage that...
+		handlers.add(new LuaLSField(new LuaLSTypeName("defines.events"), new LuaLSFunction("handler", [new LuaLSParam("event", new LuaLSTypeName(`EventData`))])));
 
 		file.add(handlers);
 		return file;
@@ -494,12 +499,44 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 			// rename the generated handler arg...
 			(((params[1].type as LuaLSUnion).members[0] as LuaLSFunction).params![0] as any).name="event";
 
+			// a few special cases first...
+			lsfunc.add(new LuaLSOverload(
+				undefined,
+				[
+					new LuaLSParam("event", new LuaLSTypeName("string")),
+					new LuaLSParam("handler", new LuaLSFunction("handler", [
+						new LuaLSParam("event", new LuaLSTypeName(`EventData`)),
+					]), undefined, true),
+				]
+			));
+
+			lsfunc.add(new LuaLSOverload(
+				undefined,
+				[
+					new LuaLSParam("event", new LuaLSTypeName("LuaCustomEventPrototype")),
+					new LuaLSParam("handler", new LuaLSFunction("handler", [
+						new LuaLSParam("event", new LuaLSTypeName(`EventData`)),
+					]), undefined, true),
+				]
+			));
+
+			lsfunc.add(new LuaLSOverload(
+				undefined,
+				[
+					new LuaLSParam("event", new LuaLSTypeName("LuaCustomInputPrototype")),
+					new LuaLSParam("handler", new LuaLSFunction("handler", [
+						new LuaLSParam("event", new LuaLSTypeName(`EventData.CustomInputEvent`)),
+					])),
+				]
+			));
+
 			for (const [_, event] of this.events) {
 				let eventtype = new LuaLSTypeName(`defines.events.${event.name}`);
 				let eventdata =  new LuaLSTypeName(`EventData.${event.name}`);
 
 				if (event.name === "CustomInputEvent") {
-					eventtype = new LuaLSTypeName(`string`);
+					//handled separately
+					continue;
 				}
 
 				const params = [
@@ -519,16 +556,6 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 				));
 			}
 
-			// and one for custom numbered events...
-			lsfunc.add(new LuaLSOverload(
-				undefined,
-				[
-					new LuaLSParam("event", new LuaLSTypeName("uint")),
-					new LuaLSParam("handler", new LuaLSFunction("handler", [
-						new LuaLSParam("event", new LuaLSTypeName(`EventData`)),
-					])),
-				]
-			));
 		}
 		return lsfunc;
 	}
