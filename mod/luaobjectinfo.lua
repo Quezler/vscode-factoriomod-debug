@@ -24,8 +24,6 @@ local function stringInterp(...)
   return stringInterp(...)
 end
 
-local validLuaObjectTypes = {table=true,userdata=true}
-
 ---@class LuaObjectInfo
 local luaObjectInfo = {
   alwaysValid = {},
@@ -83,23 +81,21 @@ luaObjectInfo.lineItem = {
 --[[
 LuaObjects since 1.1.49 share metatables per class, and the metatables are held
 in the registry by class name once an object of that class has been created.
-The LuaObject table has an extra object pointer in its header replacing what
-was previously in the `__self` userdata (which is now empty).
 
 From 1.2 onward, the LuaObject itself is a userdata instead of a table,
-and `__self` is gone.
+and the old `__self` member is gone.
 
 Most meta funcs have single upval,
-  userdata(pointer to member function)
+  lightuserdata(pointer to member function)
   object pointers are retrieved from the LuaObject passed in param 1 when calling
 
 `__eq` is shared by all, and has two (also in registry as `luaobject__eq`)
-  userdata(pointer to object (`game`))
-  userdata(pointer to member function(`__eq`))
+  lightuserdata(pointer to object (`game`))
+  lightuserdata(pointer to member function(`__eq`))
 
 Normal API functions have three upvals:
-  userdata(pointer to object),
-  userdata(pointer to member function),
+  lightuserdata(pointer to object),
+  lightuserdata(pointer to member function),
   LuaObject(parent object)
 
 all functions from one object will have the same value in the first
@@ -119,14 +115,12 @@ needs to be requested if something stops in the lower stack.
 ---@param obj any
 ---@return LuaObject.object_name|nil
 local function try_object_name(obj)
-  -- basic checks for LuaObject-like things: is table(<=1.1) or usedata(>=1.2), has masked meta
-  if not validLuaObjectTypes[type(obj)] then return end
+  -- basic checks for LuaObject-like things: userdata(>=1.2), has masked meta
+  if type(obj) ~= "userdata" then return end
 
   local mt = dgetmetatable(obj)
   if not mt then return end
   if rawget(mt, "__metatable") ~= "private" then return end
-
-  -- don't check for __self=userdata becuase that is planned to be removed in the future
 
   -- LuaBindableObjects don't have `isluaobject`, so use `object_name` instead
   -- pcall in case it's still not a real LuaObject...
@@ -143,38 +137,6 @@ luaObjectInfo.alwaysValid.LuaDifficultySettings = true
 luaObjectInfo.alwaysValid.LuaGameViewSettings = true
 
 local enumSpecial = {
-  ["defines.circuit_connector_id"] = function() --1.1
-    ---@diagnostic disable-next-line: undefined-field
-    local circuit_connector_id = defines.circuit_connector_id
-    local combinator = invert(circuit_connector_id,"defines.circuit_connector_id.",function(k,v) return (not not smatch(k,"^combinator")) end)
-    local netnames = {
-      ["accumulator"] = {[circuit_connector_id.accumulator] = "defines.circuit_connector_id.accumulator"},
-      ["container"] = {[circuit_connector_id.container] = "defines.circuit_connector_id.container"},
-      ["logistic-container"] = {[circuit_connector_id.container] = "defines.circuit_connector_id.container"},
-      ["programmable-speaker"] = {[circuit_connector_id.programmable_speaker] = "defines.circuit_connector_id.programmable_speaker"},
-      ["rail-signal"] = {[circuit_connector_id.rail_signal] = "defines.circuit_connector_id.rail_signal"},
-      ["rail-chain-signal"] = {[circuit_connector_id.rail_chain_signal] = "defines.circuit_connector_id.rail_chain_signal"},
-      ["roboport"] = {[circuit_connector_id.roboport] = "defines.circuit_connector_id.roboport"},
-      ["storage-tank"] = {[circuit_connector_id.storage_tank] = "defines.circuit_connector_id.storage_tank"},
-      ["wall"] = {[circuit_connector_id.wall] = "defines.circuit_connector_id.wall"},
-      ["electric-pole"] = {[circuit_connector_id.electric_pole] = "defines.circuit_connector_id.electric_pole"},
-      ["inserter"] = {[circuit_connector_id.inserter] = "defines.circuit_connector_id.inserter"},
-      ["lamp"] = {[circuit_connector_id.lamp] = "defines.circuit_connector_id.lamp"},
-      ["pump"] = {[circuit_connector_id.pump] = "defines.circuit_connector_id.pump"},
-      ["ofshore-pump"] = {[circuit_connector_id.offshore_pump] = "defines.circuit_connector_id.ofshore_pump"},
-
-      ["constant-combinator"] = {[circuit_connector_id.constant_combinator] = "defines.circuit_connector_id.constant_combinator"},
-
-      ["decider-combinator"] = combinator,
-      ["arithmetic-combinator"] = combinator,
-    }
-    return function(network,id)
-      local names = netnames[network.entity.type]
-      if names then
-        return names[id]
-      end
-    end
-  end,
   ["defines.inventory"] = function()
     local burner = {
       [defines.inventory.fuel] = "defines.inventory.fuel",
