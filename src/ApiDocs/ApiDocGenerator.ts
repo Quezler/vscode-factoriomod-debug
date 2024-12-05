@@ -506,7 +506,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 					new LuaLSParam("event", new LuaLSTypeName("string")),
 					new LuaLSParam("handler", new LuaLSFunction("handler", [
 						new LuaLSParam("event", new LuaLSTypeName(`EventData`)),
-					]), undefined, true),
+					])),
 				]
 			));
 
@@ -516,7 +516,7 @@ export class ApiDocGenerator<V extends ApiVersions = ApiVersions> {
 					new LuaLSParam("event", new LuaLSTypeName("LuaCustomEventPrototype")),
 					new LuaLSParam("handler", new LuaLSFunction("handler", [
 						new LuaLSParam("event", new LuaLSTypeName(`EventData`)),
-					]), undefined, true),
+					])),
 				]
 			));
 
